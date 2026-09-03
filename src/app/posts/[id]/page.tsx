@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { removePostImage } from "@/lib/post-image";
 import { supabase } from "@/lib/supabase";
 
 const categoryLabels: Record<string, string> = {
@@ -158,6 +159,14 @@ export default function PostDetailPage() {
     if (error || !data) {
       setDeleteErrorMessage("게시글 삭제에 실패했습니다. 다시 시도해 주세요.");
       return;
+    }
+
+    if (post.image_path) {
+      const cleanupError = await removePostImage(post.image_path);
+      if (cleanupError) {
+        console.error("삭제한 게시글 이미지 정리에 실패했습니다.", cleanupError);
+        window.alert("게시글은 삭제되었지만 이미지 정리에 실패했습니다.");
+      }
     }
 
     router.replace("/posts");

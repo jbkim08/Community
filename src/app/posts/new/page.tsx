@@ -1,15 +1,16 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { removePostImage, uploadPostImage, validatePostImage } from "@/lib/post-image";
 import { supabase } from "@/lib/supabase";
 
 const categories = [
   { value: "FREE", label: "자유" },
   { value: "QUESTION", label: "질문" },
   { value: "INFO", label: "정보" },
-  { value: "JOB", label: "취업" },
 ];
 
 export default function NewPostPage() {
@@ -22,6 +23,17 @@ export default function NewPostPage() {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
+  const previewUrlRef = useRef("");
+
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -64,6 +76,36 @@ export default function NewPostPage() {
     };
   }, [router]);
 
+  function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = "";
+    }
+
+    if (!file) {
+      setImageFile(null);
+      setImagePreviewUrl("");
+      return;
+    }
+
+    const validationMessage = validatePostImage(file);
+    if (validationMessage) {
+      setImageFile(null);
+      setImagePreviewUrl("");
+      event.target.value = "";
+      setErrorMessage(validationMessage);
+      return;
+    }
+
+    setErrorMessage("");
+    setImageFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    previewUrlRef.current = previewUrl;
+    setImagePreviewUrl(previewUrl);
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage("");
@@ -87,16 +129,38 @@ export default function NewPostPage() {
       return;
     }
 
+    let uploadedImagePath: string | null = null;
+
+    if (imageFile) {
+      const { path, error: uploadError } = await uploadPostImage(user.id, imageFile);
+
+      if (uploadError || !path) {
+        setIsSubmitting(false);
+        setErrorMessage("이미지 업로드에 실패했습니다. 다시 시도해 주세요.");
+        return;
+      }
+
+      uploadedImagePath = path;
+    }
+
     const { error } = await supabase.from("posts").insert({
       author_id: user.id,
       category,
       title: trimmedTitle,
       content: trimmedContent,
+      image_path: uploadedImagePath,
     });
 
     setIsSubmitting(false);
 
     if (error) {
+      if (uploadedImagePath) {
+        const cleanupError = await removePostImage(uploadedImagePath);
+        if (cleanupError) {
+          console.error("업로드한 게시글 이미지 정리에 실패했습니다.", cleanupError);
+        }
+      }
+
       setErrorMessage(
         category === "NOTICE"
           ? "공지 작성 권한이 없거나 게시글 등록에 실패했습니다."
@@ -187,6 +251,27 @@ export default function NewPostPage() {
             placeholder="게시글 제목을 입력하세요"
           />
           <p className="mt-2 text-right text-xs text-slate-500">{title.length}/200</p>
+        </div>
+
+        <div className="mt-6">
+          <label htmlFor="image" className="block text-sm font-medium text-slate-800">
+            이미지 <span className="font-normal text-slate-500">(선택, 1장)</span>
+          </label>
+          <input
+            id="image"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+            onChange={handleImageChange}
+            className="mt-2 block w-full text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-800 hover:file:bg-slate-200"
+          />
+          <p className="mt-2 text-xs text-slate-500">jpg, jpeg, png, webp · 최대 5MB</p>
+          {imagePreviewUrl && (
+            <img
+              src={imagePreviewUrl}
+              alt="선택한 이미지 미리보기"
+              className="mt-3 max-h-80 rounded-lg border border-slate-200 object-contain"
+            />
+          )}
         </div>
 
         <div className="mt-6">

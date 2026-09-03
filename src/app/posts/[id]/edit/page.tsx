@@ -1,8 +1,10 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { POST_IMAGE_BUCKET, removePostImage, uploadPostImage, validatePostImage } from "@/lib/post-image";
 import { supabase } from "@/lib/supabase";
 
 const categories = [
@@ -17,6 +19,7 @@ type EditablePost = {
   category: string;
   title: string;
   content: string;
+  image_path: string | null;
 };
 
 export default function EditPostPage() {
@@ -32,6 +35,20 @@ export default function EditPostPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadErrorMessage, setLoadErrorMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [existingImagePath, setExistingImagePath] = useState<string | null>(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
+  const [shouldRemoveImage, setShouldRemoveImage] = useState(false);
+  const previewUrlRef = useRef("");
+
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -48,7 +65,7 @@ export default function EditPostPage() {
 
       const { data, error } = await supabase
         .from("posts")
-        .select("id, author_id, category, title, content")
+        .select("id, author_id, category, title, content, image_path")
         .eq("id", params.id)
         .single();
 
@@ -87,6 +104,24 @@ export default function EditPostPage() {
       setCategory(post.category);
       setTitle(post.title);
       setContent(post.content);
+      setExistingImagePath(post.image_path);
+
+      if (post.image_path) {
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+          .from(POST_IMAGE_BUCKET)
+          .createSignedUrl(post.image_path, 60 * 60);
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (signedUrlError || !signedUrlData?.signedUrl) {
+          setErrorMessage("현재 게시글 이미지를 불러오지 못했습니다.");
+        } else {
+          setCurrentImageUrl(signedUrlData.signedUrl);
+        }
+      }
+
       setIsAdmin((profile as { role: string } | null)?.role === "ADMIN");
       setIsLoading(false);
     }
@@ -97,6 +132,37 @@ export default function EditPostPage() {
       isMounted = false;
     };
   }, [params.id, router]);
+
+  function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = "";
+    }
+
+    if (!file) {
+      setImageFile(null);
+      setImagePreviewUrl("");
+      return;
+    }
+
+    const validationMessage = validatePostImage(file);
+    if (validationMessage) {
+      setImageFile(null);
+      setImagePreviewUrl("");
+      event.target.value = "";
+      setErrorMessage(validationMessage);
+      return;
+    }
+
+    setErrorMessage("");
+    setShouldRemoveImage(false);
+    setImageFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    previewUrlRef.current = previewUrl;
+    setImagePreviewUrl(previewUrl);
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -121,9 +187,28 @@ export default function EditPostPage() {
       return;
     }
 
+    const previousImagePath = existingImagePath;
+    let nextImagePath = previousImagePath;
+    let uploadedImagePath: string | null = null;
+
+    if (imageFile) {
+      const { path, error: uploadError } = await uploadPostImage(user.id, imageFile);
+
+      if (uploadError || !path) {
+        setIsSubmitting(false);
+        setErrorMessage("이미지 업로드에 실패했습니다. 다시 시도해 주세요.");
+        return;
+      }
+
+      uploadedImagePath = path;
+      nextImagePath = path;
+    } else if (shouldRemoveImage) {
+      nextImagePath = null;
+    }
+
     const { data, error } = await supabase
       .from("posts")
-      .update({ category, title: trimmedTitle, content: trimmedContent })
+      .update({ category, title: trimmedTitle, content: trimmedContent, image_path: nextImagePath })
       .eq("id", params.id)
       .eq("author_id", user.id)
       .select("id")
@@ -132,8 +217,23 @@ export default function EditPostPage() {
     setIsSubmitting(false);
 
     if (error || !data) {
+      if (uploadedImagePath) {
+        const cleanupError = await removePostImage(uploadedImagePath);
+        if (cleanupError) {
+          console.error("새 게시글 이미지 정리에 실패했습니다.", cleanupError);
+        }
+      }
+
       setErrorMessage("게시글 수정에 실패했습니다. 다시 시도해 주세요.");
       return;
+    }
+
+    if (previousImagePath && previousImagePath !== nextImagePath) {
+      const cleanupError = await removePostImage(previousImagePath);
+      if (cleanupError) {
+        console.error("기존 게시글 이미지 정리에 실패했습니다.", cleanupError);
+        window.alert("게시글은 수정되었지만 기존 이미지 정리에 실패했습니다.");
+      }
     }
 
     router.replace(`/posts/${params.id}`);
@@ -253,6 +353,52 @@ export default function EditPostPage() {
             className="mt-2 w-full resize-y rounded-lg border border-slate-300 px-3 py-2.5 text-sm leading-6 text-slate-950 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
           />
           <p className="mt-2 text-right text-xs text-slate-500">{content.length}/10,000</p>
+        </div>
+
+        <div className="mt-6">
+          <p className="text-sm font-medium text-slate-800">이미지 <span className="font-normal text-slate-500">(선택, 1장)</span></p>
+          {existingImagePath && !shouldRemoveImage && (
+            <div className="mt-3">
+              {currentImageUrl ? (
+                <img
+                  src={currentImageUrl}
+                  alt="현재 게시글 이미지"
+                  className="max-h-80 rounded-lg border border-slate-200 object-contain"
+                />
+              ) : (
+                <p className="text-sm text-slate-500">현재 이미지를 표시할 수 없습니다.</p>
+              )}
+            </div>
+          )}
+          {existingImagePath && (
+            <label className="mt-3 flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={shouldRemoveImage}
+                disabled={Boolean(imageFile)}
+                onChange={(event) => setShouldRemoveImage(event.target.checked)}
+              />
+              기존 이미지 삭제
+            </label>
+          )}
+          <label htmlFor="image" className="mt-4 block text-sm font-medium text-slate-800">
+            새 이미지 선택
+          </label>
+          <input
+            id="image"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+            onChange={handleImageChange}
+            className="mt-2 block w-full text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-800 hover:file:bg-slate-200"
+          />
+          <p className="mt-2 text-xs text-slate-500">선택하지 않으면 기존 이미지를 유지합니다. jpg, jpeg, png, webp · 최대 5MB</p>
+          {imagePreviewUrl && (
+            <img
+              src={imagePreviewUrl}
+              alt="새 이미지 미리보기"
+              className="mt-3 max-h-80 rounded-lg border border-slate-200 object-contain"
+            />
+          )}
         </div>
 
         {errorMessage && (
