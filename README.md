@@ -27,6 +27,14 @@ Copy-Item .env.local.example .env.local
 
 `.env.local`은 Git에 포함되지 않습니다. 비밀 키는 `NEXT_PUBLIC_` 접두사를 붙이지 않으며, 현재 단계에서는 필요하지 않습니다.
 
+## Supabase 데이터베이스
+
+초기 스키마 migration은 `supabase/migrations/20260903000000_initial_schema.sql`에 있습니다. Supabase CLI를 연결한 뒤 다음 명령으로 적용합니다.
+
+```bash
+supabase db push
+```
+
 ## 검사 명령어
 
 ```bash
