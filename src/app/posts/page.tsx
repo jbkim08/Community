@@ -20,7 +20,7 @@ type Post = {
   category: string;
   title: string;
   created_at: string;
-  profiles: Profile | null;
+  author: Profile | null;
 };
 
 type Profile = {
@@ -60,7 +60,7 @@ export default function PostsPage() {
       const { data, error } = await supabase
         .from("posts")
         .select(
-          "id, category, title, created_at, profiles(id, name, avatar_url)",
+          "id, category, title, created_at, author:profiles!posts_author_id_fkey(id, name, avatar_url)",
         )
         .order("created_at", { ascending: false });
 
@@ -196,11 +196,16 @@ export default function PostsPage() {
                   {categories.find((category) => category.value === post.category)
                     ?.label ?? post.category}
                 </span>
-                <p className="truncate font-medium text-slate-950">{post.title}</p>
+                <Link
+                  href={`/posts/${post.id}`}
+                  className="truncate font-medium text-slate-950 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                >
+                  {post.title}
+                </Link>
                 <div className="flex min-w-0 items-center gap-2 text-sm text-slate-600">
-                  {post.profiles?.avatar_url ? (
+                  {post.author?.avatar_url ? (
                     <img
-                      src={post.profiles.avatar_url}
+                      src={post.author.avatar_url}
                       alt=""
                       className="size-6 shrink-0 rounded-full border border-slate-200 object-cover"
                     />
@@ -209,11 +214,11 @@ export default function PostsPage() {
                       aria-hidden="true"
                       className="flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600"
                     >
-                      {post.profiles?.name.slice(0, 1) ?? "?"}
+                      {post.author?.name.slice(0, 1) ?? "?"}
                     </span>
                   )}
                   <span className="truncate">
-                    {post.profiles?.name ?? "알 수 없음"}
+                    {post.author?.name ?? "알 수 없음"}
                   </span>
                 </div>
                 <time dateTime={post.created_at} className="text-sm text-slate-500">
