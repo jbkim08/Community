@@ -76,7 +76,7 @@ export default function RecruitmentParticipation({
   function getUnavailableMessage() {
     if (isClosed) return "모집이 종료되었습니다.";
     if (isDeadlinePassed) return "마감일이 지난 모집글입니다.";
-    if (isFull) return "모집 인원이 마감되었습니다.";
+    if (isFull) return "모집 인원이 모두 찼습니다.";
     return "";
   }
 
@@ -129,6 +129,7 @@ export default function RecruitmentParticipation({
 
   const unavailableMessage = getUnavailableMessage();
   const isDisabled = isLoading || isSubmitting || (!isParticipating && Boolean(unavailableMessage));
+  const showParticipationButton = !isLeader && (isParticipating || !isClosed);
 
   return (
     <section className="border-b border-slate-100 py-6">
@@ -139,7 +140,7 @@ export default function RecruitmentParticipation({
             {maxMembers === null ? `${members.length}명 참여` : `${members.length} / ${maxMembers}명`}
           </p>
         </div>
-        {!isLeader && (
+        {showParticipationButton && (
           <button
             type="button"
             disabled={isDisabled}
