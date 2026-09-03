@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import RecruitmentParticipation from "@/components/recruitments/recruitment-participation";
 import { supabase } from "@/lib/supabase";
 
 const typeLabels: Record<string, string> = { PROJECT: "프로젝트", STUDY: "스터디", ETC: "기타" };
@@ -100,7 +101,6 @@ export default function RecruitmentDetailPage() {
 
   if (errorMessage || !recruitment) return <div className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6"><p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{errorMessage || "모임 모집글을 불러오지 못했습니다."}</p></div>;
 
-  const memberCount = recruitment.recruitment_members[0]?.count ?? 0;
   const isOpen = recruitment.status === "OPEN";
 
   return (
@@ -120,8 +120,9 @@ export default function RecruitmentDetailPage() {
             <div><p className="font-medium text-slate-900">{recruitment.author?.name ?? "알 수 없음"}</p><time dateTime={recruitment.created_at} className="text-xs text-slate-500">{formatDate(recruitment.created_at)}</time></div>
           </div>
         </header>
-        <dl className="grid gap-4 border-b border-slate-100 py-6 text-sm sm:grid-cols-3"><div><dt className="text-slate-500">현재 참여</dt><dd className="mt-1 font-medium text-slate-900">{recruitment.max_members === null ? `${memberCount}명` : `${memberCount} / ${recruitment.max_members}명`}</dd></div><div><dt className="text-slate-500">마감</dt><dd className="mt-1 font-medium text-slate-900">{formatDeadline(recruitment.deadline)}</dd></div><div><dt className="text-slate-500">수정일</dt><dd className="mt-1 font-medium text-slate-900">{formatDate(recruitment.updated_at)}</dd></div></dl>
         <div className="py-8"><p className="whitespace-pre-wrap break-words text-sm leading-7 text-slate-800">{recruitment.content}</p></div>
+        <dl className="grid gap-4 border-b border-slate-100 py-6 text-sm sm:grid-cols-2"><div><dt className="text-slate-500">마감</dt><dd className="mt-1 font-medium text-slate-900">{formatDeadline(recruitment.deadline)}</dd></div><div><dt className="text-slate-500">수정일</dt><dd className="mt-1 font-medium text-slate-900">{formatDate(recruitment.updated_at)}</dd></div></dl>
+        <RecruitmentParticipation recruitmentId={recruitment.id} status={recruitment.status} deadline={recruitment.deadline} maxMembers={recruitment.max_members} leaderId={recruitment.author_id} />
         {deleteErrorMessage && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{deleteErrorMessage}</p>}
       </article>
     </div>
