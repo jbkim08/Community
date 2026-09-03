@@ -22,6 +22,7 @@ type Author = {
 
 type Post = {
   id: string;
+  author_id: string;
   category: string;
   title: string;
   content: string;
@@ -47,6 +48,10 @@ export default function PostDetailPage() {
   const [isNotFound, setIsNotFound] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [imageErrorMessage, setImageErrorMessage] = useState("");
+  const [isAuthor, setIsAuthor] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -64,7 +69,7 @@ export default function PostDetailPage() {
       const { data, error } = await supabase
         .from("posts")
         .select(
-          "id, category, title, content, image_path, created_at, author:profiles!posts_author_id_fkey(id, name, avatar_url)",
+          "id, author_id, category, title, content, image_path, created_at, author:profiles!posts_author_id_fkey(id, name, avatar_url)",
         )
         .eq("id", params.id)
         .single();
@@ -85,6 +90,21 @@ export default function PostDetailPage() {
 
       const loadedPost = data as unknown as Post;
       setPost(loadedPost);
+      setIsAuthor(loadedPost.author_id === user.id);
+
+      const { data: viewerProfile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (!isMounted) {
+        return;
+      }
+
+      setIsAdmin(
+        (viewerProfile as { role: string } | null)?.role === "ADMIN",
+      );
 
       if (loadedPost.image_path) {
         const { data: signedUrlData, error: signedUrlError } = await supabase.storage
@@ -113,6 +133,36 @@ export default function PostDetailPage() {
       isMounted = false;
     };
   }, [params.id, router]);
+
+  async function handleDelete() {
+    if (!post || (!isAuthor && !isAdmin)) {
+      return;
+    }
+
+    if (!window.confirm("이 게시글을 삭제할까요? 이 작업은 되돌릴 수 없습니다.")) {
+      return;
+    }
+
+    setDeleteErrorMessage("");
+    setIsDeleting(true);
+
+    const { data, error } = await supabase
+      .from("posts")
+      .delete()
+      .eq("id", post.id)
+      .select("id")
+      .maybeSingle();
+
+    setIsDeleting(false);
+
+    if (error || !data) {
+      setDeleteErrorMessage("게시글 삭제에 실패했습니다. 다시 시도해 주세요.");
+      return;
+    }
+
+    router.replace("/posts");
+    router.refresh();
+  }
 
   if (isLoading) {
     return (
@@ -176,9 +226,31 @@ export default function PostDetailPage() {
           >
             {categoryLabels[post.category] ?? post.category}
           </span>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
-            {post.title}
-          </h1>
+          <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+              {post.title}
+            </h1>
+            {(isAuthor || isAdmin) && (
+              <div className="flex shrink-0 items-center gap-2">
+                {isAuthor && (
+                  <Link
+                    href={`/posts/${post.id}/edit`}
+                    className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    수정
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={handleDelete}
+                  className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-red-300"
+                >
+                  {isDeleting ? "삭제 중..." : "삭제"}
+                </button>
+              </div>
+            )}
+          </div>
           <div className="mt-5 flex items-center gap-3 text-sm text-slate-600">
             {post.author?.avatar_url ? (
               <img
@@ -221,6 +293,14 @@ export default function PostDetailPage() {
         {imageErrorMessage && (
           <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
             {imageErrorMessage}
+          </p>
+        )}
+        {deleteErrorMessage && (
+          <p
+            role="alert"
+            className="mt-6 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          >
+            {deleteErrorMessage}
           </p>
         )}
       </article>
