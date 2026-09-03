@@ -12,7 +12,6 @@ const categories = [
   { value: "FREE", label: "자유" },
   { value: "QUESTION", label: "질문" },
   { value: "INFO", label: "정보" },
-  { value: "JOB", label: "취업" },
 ];
 
 type Post = {
@@ -95,10 +94,23 @@ export default function PostsPage() {
   }, [router]);
 
   const filteredPosts = useMemo(
-    () =>
-      selectedCategory
+    () => {
+      const postsForCategory = selectedCategory
         ? posts.filter((post) => post.category === selectedCategory)
-        : posts,
+        : posts;
+
+      return [...postsForCategory].sort((firstPost, secondPost) => {
+        const noticeDifference =
+          Number(secondPost.category === "NOTICE") -
+          Number(firstPost.category === "NOTICE");
+
+        if (noticeDifference !== 0) {
+          return noticeDifference;
+        }
+
+        return new Date(secondPost.created_at).getTime() - new Date(firstPost.created_at).getTime();
+      });
+    },
     [posts, selectedCategory],
   );
 
@@ -175,9 +187,7 @@ export default function PostsPage() {
             게시글이 없습니다
           </h2>
           <p className="mt-2 text-sm text-slate-600">
-            {selectedCategory
-              ? "선택한 카테고리에 아직 게시글이 없습니다."
-              : "첫 게시글이 등록되면 이곳에 표시됩니다."}
+            등록된 게시글이 없습니다.
           </p>
         </section>
       ) : (
