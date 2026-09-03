@@ -21,6 +21,8 @@ type Post = {
   title: string;
   created_at: string;
   author: Profile | null;
+  comments: RelationCount[];
+  post_likes: RelationCount[];
 };
 
 type Profile = {
@@ -28,6 +30,14 @@ type Profile = {
   name: string;
   avatar_url: string | null;
 };
+
+type RelationCount = {
+  count: number;
+};
+
+function getRelationCount(items: RelationCount[]) {
+  return items[0]?.count ?? 0;
+}
 
 function formatDate(createdAt: string) {
   return new Intl.DateTimeFormat("ko-KR", {
@@ -60,7 +70,7 @@ export default function PostsPage() {
       const { data, error } = await supabase
         .from("posts")
         .select(
-          "id, category, title, created_at, author:profiles!posts_author_id_fkey(id, name, avatar_url)",
+          "id, category, title, created_at, author:profiles!posts_author_id_fkey(id, name, avatar_url), comments(count), post_likes(count)",
         )
         .order("created_at", { ascending: false });
 
@@ -172,20 +182,25 @@ export default function PostsPage() {
         </section>
       ) : (
         <section aria-label="게시글 목록" className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <div className="hidden grid-cols-[88px_minmax(0,1fr)_120px_110px] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-medium text-slate-500 sm:grid">
+          <div className="hidden grid-cols-[88px_minmax(0,1fr)_120px_110px_56px] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-medium text-slate-500 sm:grid">
             <span>카테고리</span>
             <span>제목</span>
             <span>작성자</span>
             <span>작성일</span>
+            <span className="text-right">추천</span>
           </div>
           <ul className="divide-y divide-slate-200">
-            {filteredPosts.map((post) => (
-              <li
-                key={post.id}
-                className={`grid gap-2 px-5 py-4 sm:grid-cols-[88px_minmax(0,1fr)_120px_110px] sm:items-center sm:gap-4 ${
+            {filteredPosts.map((post) => {
+              const commentCount = getRelationCount(post.comments);
+              const likeCount = getRelationCount(post.post_likes);
+
+              return (
+                <li
+                  key={post.id}
+                  className={`grid gap-2 px-5 py-4 sm:grid-cols-[88px_minmax(0,1fr)_120px_110px_56px] sm:items-center sm:gap-4 ${
                   post.category === "NOTICE" ? "bg-blue-50/50" : "bg-white"
-                }`}
-              >
+                  }`}
+                >
                 <span
                   className={`w-fit rounded-full px-2.5 py-1 text-xs font-medium ${
                     post.category === "NOTICE"
@@ -198,9 +213,14 @@ export default function PostsPage() {
                 </span>
                 <Link
                   href={`/posts/${post.id}`}
-                  className="truncate font-medium text-slate-950 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                  className="flex min-w-0 items-center gap-1.5 font-medium text-slate-950 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                 >
-                  {post.title}
+                  <span className="truncate">{post.title}</span>
+                  {commentCount > 0 && (
+                    <span className="shrink-0 text-sm font-normal text-slate-500">
+                      [{commentCount}]
+                    </span>
+                  )}
                 </Link>
                 <div className="flex min-w-0 items-center gap-2 text-sm text-slate-600">
                   {post.author?.avatar_url ? (
@@ -224,8 +244,13 @@ export default function PostsPage() {
                 <time dateTime={post.created_at} className="text-sm text-slate-500">
                   {formatDate(post.created_at)}
                 </time>
+                <span className="text-sm text-slate-600 sm:text-right">
+                  <span className="sm:hidden">추천 </span>
+                  {likeCount}
+                </span>
               </li>
-            ))}
+              );
+            })}
           </ul>
         </section>
       )}

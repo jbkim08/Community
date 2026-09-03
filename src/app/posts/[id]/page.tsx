@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import CommentSection from "@/components/posts/comment-section";
+import LikeButton from "@/components/posts/like-button";
 import { removePostImage } from "@/lib/post-image";
 import { supabase } from "@/lib/supabase";
 
@@ -313,6 +314,7 @@ export default function PostDetailPage() {
             {deleteErrorMessage}
           </p>
         )}
+        <LikeButton postId={post.id} />
       </article>
 
       <CommentSection postId={post.id} isAdmin={isAdmin} />
