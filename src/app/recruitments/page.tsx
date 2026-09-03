@@ -235,7 +235,11 @@ export default function RecruitmentsPage() {
                     {isOpen ? "모집중" : "모집종료"}
                   </span>
                 </div>
-                <h2 className="mt-3 text-lg font-semibold text-slate-950">{recruitment.title}</h2>
+                <h2 className="mt-3 text-lg font-semibold text-slate-950">
+                  <Link href={`/recruitments/${recruitment.id}`} className="hover:text-blue-700">
+                    {recruitment.title}
+                  </Link>
+                </h2>
                 <dl className="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-4">
                   <div>
                     <dt className="sr-only">작성자</dt>
