@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -266,6 +267,13 @@ export default function MembersPage() {
                   )}
                 </div>
               )}
+
+              <Link
+                href={`/members/${member.id}`}
+                className="mt-5 inline-flex text-sm font-medium text-blue-700 hover:text-blue-800"
+              >
+                프로필 보기
+              </Link>
             </article>
           ))}
         </section>
