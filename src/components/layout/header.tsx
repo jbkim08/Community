@@ -113,14 +113,22 @@ export default function Header() {
           {isAuthLoading ? (
             <span className="px-3 py-2 text-sm text-slate-500">확인 중</span>
           ) : userEmail ? (
-            <button
-              type="button"
-              disabled={isSigningOut}
-              className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-              onClick={handleSignOut}
-            >
-              {isSigningOut ? "로그아웃 중..." : "로그아웃"}
-            </button>
+            <>
+              <Link
+                href="/my"
+                className="rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+              >
+                내 프로필
+              </Link>
+              <button
+                type="button"
+                disabled={isSigningOut}
+                className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                onClick={handleSignOut}
+              >
+                {isSigningOut ? "로그아웃 중..." : "로그아웃"}
+              </button>
+            </>
           ) : (
             <>
               <Link
@@ -181,14 +189,23 @@ export default function Header() {
             {isAuthLoading ? (
               <p className="px-3 py-2.5 text-sm text-slate-500">인증 확인 중</p>
             ) : userEmail ? (
-              <button
-                type="button"
-                disabled={isSigningOut}
-                className="rounded-md bg-slate-900 px-3 py-2.5 text-center text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
-                onClick={handleSignOut}
-              >
-                {isSigningOut ? "로그아웃 중..." : "로그아웃"}
-              </button>
+              <>
+                <Link
+                  href="/my"
+                  className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  내 프로필
+                </Link>
+                <button
+                  type="button"
+                  disabled={isSigningOut}
+                  className="rounded-md bg-slate-900 px-3 py-2.5 text-center text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+                  onClick={handleSignOut}
+                >
+                  {isSigningOut ? "로그아웃 중..." : "로그아웃"}
+                </button>
+              </>
             ) : (
               <>
                 <Link
