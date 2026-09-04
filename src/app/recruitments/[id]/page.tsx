@@ -145,7 +145,7 @@ export default function RecruitmentDetailPage() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className="flex flex-wrap gap-2"><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">{typeLabels[recruitment.type] ?? recruitment.type}</span><span className={`rounded-full px-2.5 py-1 text-xs font-medium ${isOpen ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"}`}>{isOpen ? "모집중" : "모집종료"}</span></div>
-              <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{recruitment.title}</h1>
+              <h1 className="mt-4 break-words text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{recruitment.title}</h1>
             </div>
             {(isAuthor || isAdmin) && (
               <div className="flex shrink-0 flex-wrap gap-2">

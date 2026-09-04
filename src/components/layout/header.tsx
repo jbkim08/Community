@@ -12,6 +12,11 @@ const navigationItems = [
   { href: "/members", label: "회원목록" },
 ];
 
+const mobileNavigationItems = [
+  { href: "/", label: "홈" },
+  ...navigationItems,
+];
+
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
@@ -87,7 +92,7 @@ export default function Header() {
           >
             C
           </span>
-          <span className="font-semibold tracking-tight text-slate-900">
+          <span className="min-w-0 truncate font-semibold tracking-tight text-slate-900">
             수료생 개발자 커뮤니티
           </span>
         </Link>
@@ -170,7 +175,7 @@ export default function Header() {
           className="border-t border-slate-200 px-4 py-3 md:hidden"
         >
           <div className="mx-auto flex w-full max-w-5xl flex-col gap-1 sm:px-2">
-            {navigationItems.map((item) => (
+            {mobileNavigationItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

@@ -146,7 +146,7 @@ export default function MemberDetailPage() {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-bold tracking-tight text-slate-950">
-                {member.name}
+                <span className="break-words">{member.name}</span>
               </h1>
               {member.role === "ADMIN" && (
                 <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
@@ -161,7 +161,7 @@ export default function MemberDetailPage() {
         <dl className="mt-6 grid gap-6 sm:grid-cols-2">
           <div>
             <dt className="text-sm font-medium text-slate-500">훈련과정</dt>
-            <dd className="mt-1 text-sm text-slate-900">
+            <dd className="mt-1 break-words text-sm text-slate-900">
               {member.training_course ?? "훈련과정 미등록"}
             </dd>
           </div>
@@ -173,7 +173,7 @@ export default function MemberDetailPage() {
           </div>
           <div className="sm:col-span-2">
             <dt className="text-sm font-medium text-slate-500">자기소개</dt>
-            <dd className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-900">
+            <dd className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-slate-900">
               {member.bio || "자기소개를 등록하지 않았습니다."}
             </dd>
           </div>

@@ -159,7 +159,7 @@ export default function NewRecruitmentPage() {
           </div>
         </div>
         {errorMessage && <p role="alert" className="mt-6 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{errorMessage}</p>}
-        <div className="mt-8 flex justify-end gap-3">
+        <div className="mt-8 flex flex-wrap justify-end gap-3">
           <Link href="/recruitments" className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">취소</Link>
           <button type="submit" disabled={isSubmitting} className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400">{isSubmitting ? "등록 중..." : "등록하기"}</button>
         </div>

@@ -238,11 +238,11 @@ export default function PostDetailPage() {
             {categoryLabels[post.category] ?? post.category}
           </span>
           <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+            <h1 className="min-w-0 break-words text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
               {post.title}
             </h1>
             {(isAuthor || isAdmin) && (
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
                 {isAuthor && (
                   <Link
                     href={`/posts/${post.id}/edit`}
@@ -298,7 +298,7 @@ export default function PostDetailPage() {
           <img
             src={imageUrl}
             alt={`${post.title} 이미지`}
-            className="w-full rounded-lg border border-slate-200 object-cover"
+            className="h-auto max-w-full rounded-lg border border-slate-200 object-cover"
           />
         )}
         {imageErrorMessage && (

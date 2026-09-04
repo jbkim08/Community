@@ -269,7 +269,7 @@ export default function NewPostPage() {
             <img
               src={imagePreviewUrl}
               alt="선택한 이미지 미리보기"
-              className="mt-3 max-h-80 rounded-lg border border-slate-200 object-contain"
+              className="mt-3 h-auto max-w-full max-h-80 rounded-lg border border-slate-200 object-contain"
             />
           )}
         </div>
@@ -303,7 +303,7 @@ export default function NewPostPage() {
           </p>
         )}
 
-        <div className="mt-8 flex justify-end gap-3">
+        <div className="mt-8 flex flex-wrap justify-end gap-3">
           <Link
             href="/posts"
             className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"

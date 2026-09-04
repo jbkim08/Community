@@ -363,7 +363,7 @@ export default function EditPostPage() {
                 <img
                   src={currentImageUrl}
                   alt="현재 게시글 이미지"
-                  className="max-h-80 rounded-lg border border-slate-200 object-contain"
+                  className="h-auto max-w-full max-h-80 rounded-lg border border-slate-200 object-contain"
                 />
               ) : (
                 <p className="text-sm text-slate-500">현재 이미지를 표시할 수 없습니다.</p>
@@ -396,7 +396,7 @@ export default function EditPostPage() {
             <img
               src={imagePreviewUrl}
               alt="새 이미지 미리보기"
-              className="mt-3 max-h-80 rounded-lg border border-slate-200 object-contain"
+              className="mt-3 h-auto max-w-full max-h-80 rounded-lg border border-slate-200 object-contain"
             />
           )}
         </div>
@@ -410,7 +410,7 @@ export default function EditPostPage() {
           </p>
         )}
 
-        <div className="mt-8 flex justify-end gap-3">
+        <div className="mt-8 flex flex-wrap justify-end gap-3">
           <Link
             href={`/posts/${params.id}`}
             className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
