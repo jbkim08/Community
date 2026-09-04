@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- 프로필 이미지는 사용자가 등록한 외부 URL일 수 있습니다. */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -16,6 +17,7 @@ import {
 type Member = TrainingCourseProfile & {
   id: string;
   name: string;
+  avatar_url: string | null;
   bio: string | null;
   github_url: string | null;
   portfolio_url: string | null;
@@ -60,7 +62,7 @@ export default function MembersPage() {
         supabase
           .from("profiles")
           .select(
-            "id, name, bio, github_url, portfolio_url, training_course_id, custom_training_course, custom_training_started_at, custom_training_ended_at, role, training_course:training_courses(id, name, started_at, ended_at, signup_enabled)",
+            "id, name, avatar_url, bio, github_url, portfolio_url, training_course_id, custom_training_course, custom_training_started_at, custom_training_ended_at, role, training_course:training_courses(id, name, started_at, ended_at, signup_enabled)",
           )
           .order("name"),
         supabase
@@ -160,7 +162,15 @@ export default function MembersPage() {
           {filteredMembers.map((member) => (
             <article key={member.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex items-start gap-3">
-                <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-700">{member.name.slice(0, 1)}</span>
+                {member.avatar_url ? (
+                  <img
+                    src={member.avatar_url}
+                    alt={`${member.name} 프로필 이미지`}
+                    className="size-10 shrink-0 rounded-full border border-slate-200 object-cover"
+                  />
+                ) : (
+                  <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-700">{member.name.slice(0, 1)}</span>
+                )}
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <h2 className="truncate font-semibold text-slate-950">{member.name}</h2>
