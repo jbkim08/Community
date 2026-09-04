@@ -25,6 +25,7 @@ export default function Header() {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState("");
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -34,8 +35,24 @@ export default function Header() {
         data: { session },
       } = await supabase.auth.getSession();
 
+      if (!isMounted) return;
+
+      setUserEmail(session?.user.email ?? null);
+
+      if (!session?.user) {
+        setIsAdmin(false);
+        setIsAuthLoading(false);
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .maybeSingle();
+
       if (isMounted) {
-        setUserEmail(session?.user.email ?? null);
+        setIsAdmin((profile as { role: string } | null)?.role === "ADMIN");
         setIsAuthLoading(false);
       }
     }
@@ -44,11 +61,8 @@ export default function Header() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (isMounted) {
-        setUserEmail(session?.user.email ?? null);
-        setIsAuthLoading(false);
-      }
+    } = supabase.auth.onAuthStateChange(() => {
+      void loadSession();
     });
 
     return () => {
@@ -77,6 +91,12 @@ export default function Header() {
 
   const isCurrentPath = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
+  const visibleNavigationItems = isAdmin
+    ? [...navigationItems, { href: "/admin", label: "관리자" }]
+    : navigationItems;
+  const visibleMobileNavigationItems = isAdmin
+    ? [...mobileNavigationItems, { href: "/admin", label: "관리자" }]
+    : mobileNavigationItems;
 
   return (
     <header className="border-b border-slate-200 bg-white">
@@ -98,7 +118,7 @@ export default function Header() {
         </Link>
 
         <nav aria-label="주요 메뉴" className="hidden items-center gap-1 md:flex">
-          {navigationItems.map((item) => (
+          {visibleNavigationItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -175,7 +195,7 @@ export default function Header() {
           className="border-t border-slate-200 px-4 py-3 md:hidden"
         >
           <div className="mx-auto flex w-full max-w-5xl flex-col gap-1 sm:px-2">
-            {mobileNavigationItems.map((item) => (
+            {visibleMobileNavigationItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
