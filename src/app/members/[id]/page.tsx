@@ -5,27 +5,22 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import {
+  getTrainingCourseName,
+  getTrainingPeriod,
+  normalizeTrainingCourse,
+  type TrainingCourseProfile,
+} from "@/lib/training-course";
 
-type Member = {
+type Member = TrainingCourseProfile & {
   id: string;
   name: string;
   avatar_url: string | null;
   bio: string | null;
   github_url: string | null;
   portfolio_url: string | null;
-  training_course: string | null;
-  training_started_at: string | null;
-  training_ended_at: string | null;
   role: string;
 };
-
-function formatTrainingPeriod(member: Member) {
-  if (!member.training_started_at && !member.training_ended_at) {
-    return "훈련 기간 미등록";
-  }
-
-  return `${member.training_started_at ?? "미정"} ~ ${member.training_ended_at ?? "진행 중"}`;
-}
 
 export default function MemberDetailPage() {
   const params = useParams<{ id: string }>();
@@ -50,7 +45,7 @@ export default function MemberDetailPage() {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "id, name, avatar_url, bio, github_url, portfolio_url, training_course, training_started_at, training_ended_at, role",
+          "id, name, avatar_url, bio, github_url, portfolio_url, training_course_id, custom_training_course, custom_training_started_at, custom_training_ended_at, role, training_course:training_courses(id, name, started_at, ended_at, signup_enabled)",
         )
         .eq("id", params.id)
         .maybeSingle();
@@ -62,7 +57,14 @@ export default function MemberDetailPage() {
       if (error) {
         setErrorMessage("회원 프로필을 불러오지 못했습니다. 다시 시도해 주세요.");
       } else {
-        setMember(data as Member | null);
+        setMember(
+          data
+            ? ({
+                ...(data as unknown as Member),
+                training_course: normalizeTrainingCourse(data.training_course),
+              } as Member)
+            : null,
+        );
       }
 
       setIsLoading(false);
@@ -162,13 +164,13 @@ export default function MemberDetailPage() {
           <div>
             <dt className="text-sm font-medium text-slate-500">훈련과정</dt>
             <dd className="mt-1 break-words text-sm text-slate-900">
-              {member.training_course ?? "훈련과정 미등록"}
+              {getTrainingCourseName(member)}
             </dd>
           </div>
           <div>
             <dt className="text-sm font-medium text-slate-500">훈련 기간</dt>
             <dd className="mt-1 text-sm text-slate-900">
-              {formatTrainingPeriod(member)}
+              {getTrainingPeriod(member)}
             </dd>
           </div>
           <div className="sm:col-span-2">
