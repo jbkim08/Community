@@ -126,7 +126,7 @@ function PostsContent() {
       </section>
 
       <p className="mt-6 text-sm text-slate-600">게시글 <span className="font-semibold text-slate-900">{displayedPostCount}</span>개</p>
-      {displayedPosts.length === 0 ? <EmptyPosts /> : <PostList posts={displayedPosts} />}
+      {displayedPosts.length === 0 ? <EmptyPosts hasCategory={Boolean(selectedCategory)} /> : <PostList posts={displayedPosts} />}
 
       {selectedCategory !== "NOTICE" && <>
         {totalCount > 0 && <nav aria-label="게시글 페이지" className="mt-6 flex flex-wrap items-center justify-center gap-2">
@@ -140,7 +140,7 @@ function PostsContent() {
 }
 
 function LoadingPosts() { return <div className="mx-auto w-full max-w-5xl px-4 py-16 text-sm text-slate-600 sm:px-6">게시글을 불러오는 중입니다.</div>; }
-function EmptyPosts() { return <section className="mt-4 rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center"><h2 className="text-base font-semibold text-slate-900">게시글이 없습니다</h2><p className="mt-2 text-sm text-slate-600">등록된 게시글이 없습니다.</p></section>; }
+function EmptyPosts({ hasCategory }: { hasCategory: boolean }) { return <section className="mt-4 rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center"><h2 className="text-base font-semibold text-slate-900">{hasCategory ? "해당 카테고리에 등록된 게시글이 없습니다." : "등록된 게시글이 없습니다."}</h2>{!hasCategory && <><p className="mt-2 text-sm text-slate-600">첫 번째 글을 작성해보세요.</p><Link href="/posts/new" className="mt-5 inline-flex text-sm font-medium text-blue-700 hover:text-blue-800">글쓰기</Link></>}</section>; }
 function PaginationButton({ label, disabled, onClick }: { label: string; disabled: boolean; onClick: () => void }) { return <button type="button" disabled={disabled} onClick={onClick} className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400">{label}</button>; }
 function PostList({ posts }: { posts: Post[] }) {
   return <section aria-label="게시글 목록" className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">

@@ -213,7 +213,8 @@ export default function RecruitmentsPage() {
 
       {filteredRecruitments.length === 0 ? (
         <section className="mt-6 rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
-          <h2 className="text-base font-semibold text-slate-900">등록된 모임 모집글이 없습니다.</h2>
+          <h2 className="text-base font-semibold text-slate-900">{recruitments.length === 0 ? "등록된 모임이 없습니다." : "조건에 맞는 모임이 없습니다."}</h2>
+          {recruitments.length === 0 && <><p className="mt-2 text-sm text-slate-600">새로운 프로젝트나 스터디를 만들어보세요.</p><Link href="/recruitments/new" className="mt-5 inline-flex text-sm font-medium text-blue-700 hover:text-blue-800">모임 모집하기</Link></>}
         </section>
       ) : (
         <ul className="mt-6 divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white">

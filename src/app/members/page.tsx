@@ -152,8 +152,8 @@ export default function MembersPage() {
 
       {filteredMembers.length === 0 ? (
         <section className="mt-4 rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
-          <h2 className="text-base font-semibold text-slate-900">조건에 맞는 회원이 없습니다</h2>
-          <p className="mt-2 text-sm text-slate-600">다른 훈련과정 또는 년도를 선택해 보세요.</p>
+          <h2 className="text-base font-semibold text-slate-900">{members.length === 0 ? "등록된 회원이 없습니다." : "해당 훈련과정의 회원이 없습니다."}</h2>
+          {members.length > 0 && <p className="mt-2 text-sm text-slate-600">다른 훈련과정 또는 년도를 선택해 보세요.</p>}
         </section>
       ) : (
         <section aria-label="회원 목록" className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

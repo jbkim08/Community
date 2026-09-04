@@ -207,12 +207,14 @@ export default function PostDetailPage() {
   if (errorMessage || !post) {
     return (
       <div className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6">
-        <p
-          role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
-        >
-          {errorMessage || "게시글을 불러오지 못했습니다. 다시 시도해 주세요."}
-        </p>
+        <section className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+          <h1 role="alert" className="text-lg font-semibold text-red-800">게시글을 불러오지 못했습니다.</h1>
+          <p className="mt-2 text-sm text-red-700">잠시 후 다시 시도해 주세요.</p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <button type="button" onClick={() => window.location.reload()} className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700">다시 시도</button>
+            <Link href="/posts" className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">게시판으로</Link>
+          </div>
+        </section>
       </div>
     );
   }

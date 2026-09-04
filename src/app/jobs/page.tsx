@@ -151,7 +151,8 @@ export default function JobsPage() {
 
       {filteredJobs.length === 0 ? (
         <section className="mt-6 rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
-          <h2 className="text-base font-semibold text-slate-900">등록된 취업정보가 없습니다.</h2>
+          <h2 className="text-base font-semibold text-slate-900">{jobs.length === 0 ? "등록된 취업정보가 없습니다." : "검색 결과가 없습니다."}</h2>
+          {jobs.length === 0 && <><p className="mt-2 text-sm text-slate-600">좋은 채용공고를 알고 있다면 공유해주세요.</p><Link href="/jobs/new" className="mt-5 inline-flex text-sm font-medium text-blue-700 hover:text-blue-800">취업정보 등록</Link></>}
         </section>
       ) : (
         <ul className="mt-6 divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white">
